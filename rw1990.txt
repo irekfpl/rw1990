@@ -1,40 +1,52 @@
- // Based on https://danman.eu/blog/cloning-ibutton-using-rw1990-and-avr/
+// Based on code from https://gist.github.com/swiftgeek/0ccfb7f87918b56b2259
+// and good modification by https://gist.github.com/MagicLegend 
+// swiftgeek base on https://danman.eu/blog/cloning-ibutton-using-rw1990-and-avr/
 // and: http://elimelecsarduinoprojects.blogspot.com/2013/06/read-dallas-ibutton-arduino.html
-// By Swift Geek 28-08-2015
 // TODO: danger to atmega328! Use OpenCollector logic!
 // Used 4.8kΩ Pull-up and 3.1 Vcc for arduino/pull-up
+// By irekfpl 2021-02-01
+
+// do zrobienia - pierwsze przyłożenie - czytamy, drugie przyłożenie zapis
+// do zrobienia - obsługa wyświetlacza duży / mały (najlepiej mały)
+// do zrobienia - zapis na kartę sd obsługiwanych breloków + czas obsługi
+
+
+
 
 #include <OneWire.h>
 
 #define pin 12
 
-OneWire ibutton (pin); // I button connected on PIN 2.
+
+OneWire ibutton (pin); // I button connected on PIN 12.
 
 byte addr[8]; //array to store the Ibutton ID.
 
 void setup(){
- Serial.begin(115200); 
+ Serial.begin(9600); 
 }
 
 void loop(){
   if (!ibutton.search (addr)){//read attached ibutton and asign value to buffer
     ibutton.reset_search();
-    delay(200);
+    delay(1000);
     return;
- }
+  }
  
-  Serial.print(millis()/1000);
-  Serial.print("> ");
-  for (byte x = 0; x<8; x++){  
-    Serial.print(addr[x],HEX); //print the buffer content in LSB. For MSB: for (int x = 8; x>0; x--) 
-     Serial.print(" ");
+//  Serial.print(millis()/1000);   //turned off because I did not like it
+//  Serial.print("> ");       //turned off because I did not like it
+  Serial.print("ID read> ");       
+  for (int x = 8; x>0; x--){ int y = x-1; 
+                      // buffer content in LSB (byte x = 0; x<8; x++) { Serial.print(addr[y],HEX);. 
+                      // For MSB: for (int x = 8; x>0; x--) { int y = x-1; Serial.print(addr[y],HEX);
+    Serial.print(addr[y],HEX); //print the buffer content 
+//  Serial.print(" ");        //turned off because I did not like it
   }
  
   //compute crc//
   byte crc;
   crc = ibutton.crc8(addr, 7);
-  Serial.print("CRC: ");
-  Serial.println(crc,HEX);
+//  Serial.print(" CRC: "); Serial.println(crc,HEX); //not needed
   if ( Serial.read() == 'w' ){
     ibutton.skip();ibutton.reset();ibutton.write(0x33);
     Serial.print("  ID before write:");
